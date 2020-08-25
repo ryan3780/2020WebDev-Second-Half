@@ -1,80 +1,74 @@
 const $keyword = document.querySelector(".keyword");
 const $keywords = document.querySelector(".keywords");
 const $searchResults = document.querySelector(".search-results");
-const keywords = document.getElementsByClassName('keywords')[0];
+
 
 let nowPosition = 0;
-const recommandText = [];
+let choosedText = '';
 
 $keyword.addEventListener("keyup", (e) => {
 const {value} = e.target;
 const { key } = e;
-  
-console.log($keyword.value)
+
 
   if (key === "Enter") {
-    
-     fetch(
-      `https://jf3iw5iguk.execute-api.ap-northeast-2.amazonaws.com/dev/api/cats/search?q=${value}`
-    )
-      .then((res) => res.json())
-      .then((results) => {
-         $keywords.style.display='none';
-        if (results.data) {
-          $searchResults.innerHTML = results.data
-            .map((cat) => `<article><img src="${cat.url}" /></article>`)
-            .join("");
-        }
-      });
-    
-  }
-  if(value !== ''){
+    if(choosedText !== ''){
+      $keyword.value = choosedText;
+      $keywords.style.display = 'none';
+      console.log($keyword.value)
+      fetch(
+        `https://jf3iw5iguk.execute-api.ap-northeast-2.amazonaws.com/dev/api/cats/search?q=${$keyword.value}`
+      )
+        .then((res) => res.json())
+        .then((results) => {
+          if (results.data) {
+            $searchResults.innerHTML = results.data
+              .map((cat) => `<article><img src="${cat.url}" /></article>`)
+              .join("");
+          }
+        }); 
+    }
+  }else{
+    if(value === ''){
+      return $keywords.style.display = 'none';
+    };
     fetch(
       `https://jf3iw5iguk.execute-api.ap-northeast-2.amazonaws.com/dev/api/cats/keywords?q=${value}`
     )
-      .then((res) => res.json())
+    .then((res) => res.json())
       .then((results) => {
-      
-        // console.log(recommandText);
-        // let outFocus = $keyword.addEventListener('blur', e =>{
-        // $keywords.style.display = 'none';
-        // });
+        // console.log(results)
         
-        if(e.keyCode === 27){
-          $keywords.style.display = 'none';
-          nowPosition = 0;
-        }else{
-
+        if (results.length !== 0) {
           $keywords.style.display = 'block';
-          $keywords.innerHTML = results.map((recommand) => `<li>${recommand}</li>`).join('')
-            
+            $keywords.innerHTML = results
+            .map((name) => `<li>${name}</li>`)
+            .join("");
+            if(key === 'ArrowDown'){
+              const recommandText = document.querySelectorAll('li');
+              recommandText[nowPosition].className = 'active';
+              choosedText = recommandText[nowPosition].innerText;
+              nowPosition++;  
+              console.log(choosedText)
+            }
+            if(key === 'ArrowUp'){
+              const recommandText = document.querySelectorAll('li');
+              if(nowPosition <= 1){
+                nowPosition = 0;
+                return  recommandText[nowPosition].className = 'active';  
+              }
+              nowPosition--;
+              recommandText[nowPosition -1].className = 'active';   
+            }
         }
-        
-        if(e.keyCode === 40){
-          keywords.children[nowPosition].className = 'active';
-          nowPosition++;
-          console.log(document.querySelectorAll('.active')[0].innerText)
-          
-        }
-
-        if(e.keyCode === 38){
-          if(nowPosition === 1){
-            return keywords.children[0].className = 'active';
-          }else{
-            nowPosition--;
-            let prevPosition = nowPosition - 1;
-            keywords.children[prevPosition].className = 'active';
-            
-          }   
-        }
-    });
-  }   
+      }); 
+  }
 });
 
 
 window.onkeydown = function (e) {
   if(e.keyCode === 27){
-    $keywords.style.display = '';
+    $keyword.value = '';
   }
 }
   
