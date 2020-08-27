@@ -6,6 +6,8 @@ const spinner = document.getElementById("spinner");
 
 let nowPosition = 0;
 let choosedText = '';
+let currentVal = 0;
+let prevVal = 0;
 
 $keyword.addEventListener("keyup", (e) => {
 const {value} = e.target;
@@ -38,7 +40,8 @@ const { key } = e;
       nowPosition = 0;
       return $keywords.style.display = 'none';
     };
-   
+    currentVal = value.length;
+    
     fetch(
       `https://jf3iw5iguk.execute-api.ap-northeast-2.amazonaws.com/dev/api/cats/keywords?q=${value}`
     )
@@ -47,6 +50,8 @@ const { key } = e;
     })
     .then((res) => res.json())
       .then((results) => {
+        
+        
         if(results.length === 0 ){
           return $keywords.style.display = 'none';
         }
@@ -55,31 +60,42 @@ const { key } = e;
             $keywords.innerHTML = results
             .map((name) => `<li>${name}</li>`)
             .join("");
-
+          
             const recommandText = document.querySelectorAll('li');
-            
+            if(prevVal !== currentVal){
+              nowPosition = 0;
+            }
             if(key === 'ArrowDown'){
-              
-              recommandText[nowPosition].className = 'active';
-              choosedText = recommandText[nowPosition].innerText;
-              nowPosition++;  
-            
+              if(nowPosition === recommandText.length -1){
+                choosedText = recommandText[nowPosition].innerText;
+                recommandText[nowPosition].className = 'active';    
+              }else{
+                recommandText[nowPosition].className = 'active';
+                choosedText = recommandText[nowPosition].innerText;
+                nowPosition++;
+              }  
             }
             if(key === 'ArrowUp'){
+              
               if(nowPosition === 0){
                 return choosedText = value;
               }else{
                 nowPosition--;
+                console.log(nowPosition) 
                 if(recommandText[nowPosition -1] === undefined){
                   return choosedText = value;
-                }             
+                } 
+                          
                 recommandText[nowPosition -1].className = 'active';   
                 choosedText = recommandText[nowPosition -1].innerText;
               }
 
             }
+            
         }
+        prevVal = currentVal; 
       }); 
+      
   }
 });
 
